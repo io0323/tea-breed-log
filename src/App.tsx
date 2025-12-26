@@ -41,7 +41,6 @@ function App() {
         </Routes>
       </div>
     </Router>
-=======
 import { useState, useEffect, useMemo } from "react";
 import { TeaForm } from "./components/TeaForm";
 import { useTeaVarieties } from "./hooks/useTeaVarieties";
@@ -274,6 +273,16 @@ function App() {
         )}
       </div>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 }
 
