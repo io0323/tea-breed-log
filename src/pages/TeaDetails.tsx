@@ -1,15 +1,24 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTeaVarieties } from "../hooks/useTeaVarieties";
 import { useAuth } from "../contexts/AuthContext";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import { ImageUploader } from "../components/ImageUploader";
+import { TeaImageGallery } from "../components/TeaImageGallery";
 
 export const TeaDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { teaVarieties, deleteTea } = useTeaVarieties();
+  const { 
+    deleteTea, 
+    addTeaImage, 
+    removeTeaImage,
+    getTeaById 
+  } = useTeaVarieties();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const tea = teaVarieties.find((t) => t.id === id);
+  const tea = getTeaById(id || '');
 
   if (!tea) {
     return (
@@ -26,8 +35,18 @@ export const TeaDetails = () => {
     }
   };
 
+  const handleImageUpload = async (imageUrl: string) => {
+    if (!id) return;
+    addTeaImage(id, imageUrl);
+  };
+
+  const handleImageDelete = (imageUrl: string) => {
+    if (!id) return;
+    removeTeaImage(id, imageUrl);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 pb-12">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center text-tea-dark hover:text-tea-brown mb-4"
@@ -36,7 +55,7 @@ export const TeaDetails = () => {
         一覧に戻る
       </button>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">
@@ -111,6 +130,34 @@ export const TeaDetails = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 画像アップロードセクション */}
+      {user && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+            <PhotoIcon className="h-5 w-5 mr-2 text-tea-dark" />
+            画像を追加
+          </h2>
+          <ImageUploader 
+            teaId={tea.id}
+            onUploadComplete={handleImageUpload}
+            onError={(error) => setUploadError(error)}
+          />
+          {uploadError && (
+            <p className="mt-2 text-sm text-red-600">{uploadError}</p>
+          )}
+        </div>
+      )}
+
+      {/* 画像ギャラリー */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <TeaImageGallery 
+          images={tea.images || []} 
+          teaId={tea.id}
+          onImageDelete={handleImageDelete}
+          isOwner={!!user}
+        />
       </div>
     </div>
   );

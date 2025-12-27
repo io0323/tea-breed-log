@@ -10,4 +10,5 @@ export interface TeaVariety {
   aroma: string;
   note: string;
   status: "active" | "discarded";
+  images: string[]; // 画像URLの配列
 }
