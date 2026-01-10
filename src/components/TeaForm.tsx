@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { TeaVariety } from "../types/teaVariety";
 
+type TeaFormData = Omit<TeaVariety, 'id' | 'images'> & {
+  images?: string[];
+};
+
 interface TeaFormProps {
-  initialData?: Partial<TeaVariety>;
-  onSubmit: (tea: Omit<TeaVariety, "id">) => void;
+  initialData?: Partial<TeaFormData>;
+  onSubmit: (tea: TeaFormData) => void;
   onCancel: () => void;
 }
 
 export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
-  const [formData, setFormData] = useState<Omit<TeaVariety, "id">>({
+  const [formData, setFormData] = useState<TeaFormData>({
     name: "",
     generation: "F1",
     location: "",
@@ -19,22 +23,16 @@ export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
     aroma: "",
     note: "",
     status: "active",
+    images: [],
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData({
-        name: initialData.name || "",
-        generation: initialData.generation || "F1",
-        location: initialData.location || "",
-        year: initialData.year || new Date().getFullYear(),
-        germinationRate: initialData.germinationRate || 0,
-        growthScore: initialData.growthScore || 0,
-        diseaseResistance: initialData.diseaseResistance || 0,
-        aroma: initialData.aroma || "",
-        note: initialData.note || "",
-        status: initialData.status || "active",
-      });
+      setFormData(prev => ({
+        ...prev,
+        ...initialData,
+        images: initialData.images || [],
+      }));
     }
   }, [initialData]);
 
@@ -62,8 +60,9 @@ export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">品種名</label>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">品種名</label>
           <input
+            id="name"
             type="text"
             name="name"
             value={formData.name}
