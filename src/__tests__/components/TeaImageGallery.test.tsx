@@ -91,7 +91,7 @@ describe('TeaImageGallery', () => {
     expect(modalImage).toHaveAttribute('src', mockImages[0]);
   });
 
-  it('削除ボタンをクリックすると確認ダイアログが表示され、削除が実行されること', async () => {
+  it('削除ボタンをクリックすると確認ダイアログが表示されること', () => {
     render(
       <TeaImageGallery 
         images={mockImages} 
@@ -104,11 +104,100 @@ describe('TeaImageGallery', () => {
     const deleteButton = screen.getAllByRole('button', { name: /画像を削除/ })[0];
     fireEvent.click(deleteButton);
 
-    expect(mockConfirm).toHaveBeenCalledWith('この画像を削除してもよろしいですか？');
-    
+    expect(window.confirm).toHaveBeenCalledWith('この画像を削除してもよろしいですか？');
+  });
+
+  it('削除確認ダイアログでキャンセルを押した場合、削除が実行されないこと', async () => {
+    // 確認ダイアログでfalseを返すようにモック
+    mockConfirm.mockImplementationOnce(() => false);
+
+    render(
+      <TeaImageGallery 
+        images={mockImages} 
+        teaId={mockTeaId}
+        onImageDelete={mockOnImageDelete}
+        isOwner={true}
+      />
+    );
+
+    const deleteButton = screen.getAllByRole('button', { name: /画像を削除/ })[0];
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(mockOnImageDelete).not.toHaveBeenCalled();
+    });
+  });
+
+  it('削除確認ダイアログでOKを押した場合、削除が実行されること', async () => {
+    // 確認ダイアログでtrueを返すようにモック
+    mockConfirm.mockImplementationOnce(() => true);
+
+    render(
+      <TeaImageGallery 
+        images={mockImages} 
+        teaId={mockTeaId}
+        onImageDelete={mockOnImageDelete}
+        isOwner={true}
+      />
+    );
+
+    const deleteButton = screen.getAllByRole('button', { name: /画像を削除/ })[0];
+    fireEvent.click(deleteButton);
+
     await waitFor(() => {
       expect(mockOnImageDelete).toHaveBeenCalledWith(mockImages[0]);
     });
+  });
+
+  it('画像に適切なaltテキストが設定されていること', () => {
+    render(
+      <TeaImageGallery 
+        images={mockImages} 
+        teaId={mockTeaId}
+        onImageDelete={mockOnImageDelete}
+        isOwner={true}
+      />
+    );
+
+    const images = screen.getAllByRole('img');
+    images.forEach((img, index) => {
+      expect(img).toHaveAttribute('alt', `品種画像 ${index + 1}`);
+    });
+  });
+
+  it('削除処理が失敗した場合、エラーがコンソールに出力されること', async () => {
+    // エラーをモック
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+    
+    // 確認ダイアログでtrueを返すようにモック
+    mockConfirm.mockImplementationOnce(() => true);
+
+    // 削除処理を失敗させる
+    const mockError = new Error('Failed to delete image');
+    const mockOnImageDelete = jest.fn().mockRejectedValueOnce(mockError);
+
+    render(
+      <TeaImageGallery 
+        images={mockImages} 
+        teaId={mockTeaId}
+        onImageDelete={mockOnImageDelete}
+        isOwner={true}
+      />
+    );
+
+    const deleteButton = screen.getAllByRole('button', { name: /画像を削除/ })[0];
+    fireEvent.click(deleteButton);
+
+    // 非同期処理の完了を待つ
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith('Error deleting image:', expect.any(Error));
+      expect(alertMock).toHaveBeenCalledWith('画像の削除に失敗しました');
+    });
+    
+    // モックを元に戻す
+    consoleError.mockRestore();
+    alertMock.mockRestore();
   });
 
   it('画像がない場合、メッセージが表示されること', () => {

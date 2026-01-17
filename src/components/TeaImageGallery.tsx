@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 interface TeaImageGalleryProps {
   images: string[];
   teaId: string;
-  onImageDelete: (imageUrl: string) => void;
+  onImageDelete: (imageUrl: string) => void | Promise<void>;
   isOwner: boolean;
 }
 
@@ -40,7 +40,7 @@ export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaIm
       if (error) throw error;
 
       // 親コンポーネントに削除を通知
-      onImageDelete(imageUrl);
+      await Promise.resolve(onImageDelete(imageUrl));
     } catch (error) {
       console.error('Error deleting image:', error);
       alert('画像の削除に失敗しました');
