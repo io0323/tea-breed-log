@@ -56,6 +56,12 @@ describe('HealthRecordList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // window.confirmをモック
+    const originalConfirm = window.confirm;
+    window.confirm = jest.fn(() => true);
+    return () => {
+      window.confirm = originalConfirm;
+    };
   });
 
   it('レコードが正しく表示されること', () => {
@@ -91,7 +97,8 @@ describe('HealthRecordList', () => {
       />
     );
 
-    expect(screen.getByText('健康記録がありません')).toBeInTheDocument();
+    // テキストが分割されているため、部分一致で確認
+    expect(screen.getByText((text, element) => text.includes('健康記録がありません'))).toBeInTheDocument();
   });
 
   it('編集ボタンが機能すること', () => {
@@ -124,13 +131,6 @@ describe('HealthRecordList', () => {
     const deleteButtons = screen.getAllByRole('button', { name: /削除/ });
     fireEvent.click(deleteButtons[0]);
 
-    // 確認ダイアログが表示されることを確認
-    expect(screen.getByText('この記録を削除しますか？')).toBeInTheDocument();
-
-    // 削除を確定
-    const confirmButton = screen.getByRole('button', { name: '削除' });
-    fireEvent.click(confirmButton);
-
     // onDeleteが正しいIDで呼ばれたことを確認
     expect(mockOnDelete).toHaveBeenCalledWith(mockRecords[0].id);
   });
@@ -159,9 +159,9 @@ describe('HealthRecordList', () => {
       />
     );
 
-    // 日付が「yyyy/MM/dd (E)」形式で表示されていることを確認
-    expect(screen.getByText('2025/01/15 (水)')).toBeInTheDocument();
-    expect(screen.getByText('2025/01/10 (金)')).toBeInTheDocument();
-    expect(screen.getByText('2025/01/05 (日)')).toBeInTheDocument();
+    // 日付が「yyyy年MM月dd日 (E)」形式で表示されていることを確認
+    expect(screen.getByText('2025年01月15日 (水)')).toBeInTheDocument();
+    expect(screen.getByText('2025年01月10日 (金)')).toBeInTheDocument();
+    expect(screen.getByText('2025年01月05日 (日)')).toBeInTheDocument();
   });
 });

@@ -147,7 +147,7 @@ describe('TeaHealth', () => {
     renderComponent();
 
     expect(screen.getByText('問題の内訳')).toBeInTheDocument();
-    expect(screen.getByText('病気')).toBeInTheDocument();
-    expect(screen.getByText('1件')).toBeInTheDocument();
+    expect(screen.getAllByText('病気')).toHaveLength(2); // 見出しと内訳の2回
+    expect(screen.getAllByText('1件')).toHaveLength(2); // 内訳の2回
   });
 });
