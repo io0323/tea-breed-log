@@ -110,20 +110,34 @@ describe('GrowthRecordForm', () => {
     );
 
     // フォームに入力（必須項目すべて）
-    fireEvent.change(screen.getByLabelText('記録日 *'), { target: { value: '2025-01-20' } });
-    fireEvent.change(screen.getByLabelText('草丈 (cm) *'), { target: { value: '18.5' } });
-    fireEvent.change(screen.getByLabelText('葉の枚数 *'), { target: { value: '10' } });
-    fireEvent.change(screen.getByLabelText('天気 *'), { target: { value: 'cloudy' } });
-    fireEvent.change(screen.getByLabelText('気温 (°C) *'), { target: { value: '20' } });
-    fireEvent.change(screen.getByLabelText('観察メモ'), { target: { value: 'テストメモ' } });
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('記録日 *'), { target: { value: '2025-01-20' } });
+      fireEvent.change(screen.getByLabelText('草丈 (cm) *'), { target: { value: '18.5' } });
+      fireEvent.change(screen.getByLabelText('葉の枚数 *'), { target: { value: '10' } });
+      fireEvent.change(screen.getByLabelText('天気 *'), { target: { value: 'cloudy' } });
+      fireEvent.change(screen.getByLabelText('気温 (°C) *'), { target: { value: '20' } });
+      fireEvent.change(screen.getByLabelText('観察メモ'), { target: { value: 'テストメモ' } });
+    });
 
     // 送信ボタンをクリック
     const submitButton = screen.getByRole('button', { name: '保存' });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
-    // フォーム送信が試行されたことを確認（React Hook Form の複雑な動作により簡略化）
-    // 実際のデータ検証はコンポーネントの責務であり、テストでは基本的な動作のみを確認
-    expect(mockSubmit).toHaveBeenCalled();
+    // 送信データが正しいこと
+    expect(mockSubmit).toHaveBeenCalledTimes(1);
+    // React Hook Form はイベントオブジェクトを渡すため、最初の引数がフォームデータ
+    const submittedData = mockSubmit.mock.calls[0][0];
+    expect(submittedData).toEqual({
+      date: '2025-01-20',
+      height: '18.5',
+      leafCount: '10',
+      weather: 'cloudy',
+      temperature: 20,
+      notes: 'テストメモ',
+      imageUrl: '',
+    });
   });
 
   it('キャンセルボタンが機能すること', () => {
