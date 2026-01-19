@@ -6,6 +6,14 @@ interface TeaGrowthChartProps {
 }
 
 export const TeaGrowthChart = ({ teas }: TeaGrowthChartProps) => {
+  if (teas.length === 0) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <p className="text-center text-gray-500">表示するデータがありません</p>
+      </div>
+    );
+  }
+
   const option = {
     title: {
       text: "品種別 生育スコア比較",

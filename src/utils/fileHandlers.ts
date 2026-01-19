@@ -2,14 +2,21 @@ import { TeaVariety } from "../types/teaVariety";
 
 export const exportToJson = (data: TeaVariety[], filename: string) => {
   const dataStr = JSON.stringify(data, null, 2);
-  const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-  
   const exportFileDefaultName = `${filename}.json`;
-  
+
+  const blob = new Blob([dataStr], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
   const linkElement = document.createElement("a");
-  linkElement.setAttribute("href", dataUri);
+  linkElement.setAttribute("href", url);
   linkElement.setAttribute("download", exportFileDefaultName);
+  document.body.appendChild(linkElement);
   linkElement.click();
+  linkElement.remove();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 0);
 };
 
 export const importFromJson = (file: File): Promise<TeaVariety[]> => {

@@ -32,12 +32,12 @@ describe('TeaForm', () => {
     expect(screen.getByLabelText('品種名')).toHaveValue('');
     expect(screen.getByLabelText('世代')).toHaveValue('F1');
     expect(screen.getByLabelText('栽培地')).toHaveValue('');
-    expect(screen.getByLabelText('発芽率')).toHaveValue(0);
-    expect(screen.getByLabelText('生育スコア')).toHaveValue(0);
-    expect(screen.getByLabelText('耐病性')).toHaveValue(0);
+    expect(screen.getByLabelText(/発芽率/)).toHaveValue(0);
+    expect(screen.getByLabelText(/生育スコア/)).toHaveValue(0);
+    expect(screen.getByLabelText(/耐病性/)).toHaveValue(0);
     expect(screen.getByLabelText('香気特徴')).toHaveValue('');
     expect(screen.getByLabelText('メモ')).toHaveValue('');
-    expect(screen.getByText('保存')).toBeInTheDocument();
+    expect(screen.getByText('追加')).toBeInTheDocument();
     expect(screen.getByText('キャンセル')).toBeInTheDocument();
   });
 
@@ -53,11 +53,12 @@ describe('TeaForm', () => {
     expect(screen.getByLabelText('品種名')).toHaveValue(mockTeaData.name);
     expect(screen.getByLabelText('世代')).toHaveValue(mockTeaData.generation);
     expect(screen.getByLabelText('栽培地')).toHaveValue(mockTeaData.location);
-    expect(screen.getByLabelText('発芽率')).toHaveValue(mockTeaData.germinationRate);
-    expect(screen.getByLabelText('生育スコア')).toHaveValue(mockTeaData.growthScore);
-    expect(screen.getByLabelText('耐病性')).toHaveValue(mockTeaData.diseaseResistance);
+    expect(screen.getByLabelText(/発芽率/)).toHaveValue(mockTeaData.germinationRate);
+    expect(screen.getByLabelText(/生育スコア/)).toHaveValue(mockTeaData.growthScore);
+    expect(screen.getByLabelText(/耐病性/)).toHaveValue(mockTeaData.diseaseResistance);
     expect(screen.getByLabelText('香気特徴')).toHaveValue(mockTeaData.aroma);
     expect(screen.getByLabelText('メモ')).toHaveValue(mockTeaData.note);
+    expect(screen.getByText('更新')).toBeInTheDocument();
   });
 
   it('フォームの入力が正しく処理されること', () => {
@@ -65,35 +66,44 @@ describe('TeaForm', () => {
 
     fireEvent.change(screen.getByLabelText('品種名'), { target: { value: '新しい品種' } });
     fireEvent.change(screen.getByLabelText('世代'), { target: { value: 'F3' } });
-    fireEvent.change(screen.getByLabelText('発芽率'), { target: { value: '90' } });
-    fireEvent.change(screen.getByLabelText('生育スコア'), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText(/発芽率/), { target: { value: '90' } });
+    fireEvent.change(screen.getByLabelText(/生育スコア/), { target: { value: '5' } });
 
     expect(screen.getByLabelText('品種名')).toHaveValue('新しい品種');
     expect(screen.getByLabelText('世代')).toHaveValue('F3');
-    expect(screen.getByLabelText('発芽率')).toHaveValue(90);
-    expect(screen.getByLabelText('生育スコア')).toHaveValue(5);
+    expect(screen.getByLabelText(/発芽率/)).toHaveValue(90);
+    expect(screen.getByLabelText(/生育スコア/)).toHaveValue(5);
   });
 
-  it('フォーム送信時に正しいデータが送信されること', () => {
+  it('フォーム送信時に正しいデータが送信されること', async () => {
     render(<TeaForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
     fireEvent.change(screen.getByLabelText('品種名'), { target: { value: 'テスト品種' } });
     fireEvent.change(screen.getByLabelText('栽培地'), { target: { value: 'テスト農園' } });
-    fireEvent.change(screen.getByLabelText('発芽率'), { target: { value: '85' } });
+    fireEvent.change(screen.getByLabelText(/発芽率/), { target: { value: '85' } });
+    // 必須項目を入力
+    fireEvent.change(screen.getByLabelText('品種名'), { target: { value: 'テスト品種' } });
+    fireEvent.change(screen.getByLabelText('栽培地'), { target: { value: 'テスト農園' } });
+    fireEvent.change(screen.getByLabelText('年'), { target: { value: '2024' } });
+    fireEvent.change(screen.getByLabelText(/発芽率/), { target: { value: '85' } });
+    fireEvent.change(screen.getByLabelText(/生育スコア/), { target: { value: '3' } });
+    fireEvent.change(screen.getByLabelText(/耐病性/), { target: { value: '4' } });
     
-    fireEvent.click(screen.getByText('保存'));
+    // フォーム送信
+    fireEvent.click(screen.getByRole('button', { name: '追加' }));
 
     expect(mockOnSubmit).toHaveBeenCalledWith({
       name: 'テスト品種',
       generation: 'F1',
       location: 'テスト農園',
-      year: new Date().getFullYear(),
+      year: 2024,
       germinationRate: 85,
-      growthScore: 0,
-      diseaseResistance: 0,
+      growthScore: 3,
+      diseaseResistance: 4,
       aroma: '',
       note: '',
       status: 'active',
+      images: []
     });
   });
 
@@ -114,8 +124,8 @@ describe('TeaForm', () => {
       { label: '耐病性', name: 'diseaseResistance', value: '3' },
     ];
 
-    numberFields.forEach(({ label, name, value }) => {
-      const input = screen.getByLabelText(label);
+    numberFields.forEach(({ label, value }) => {
+      const input = screen.getByLabelText(new RegExp(label));
       fireEvent.change(input, { target: { value } });
       expect(input).toHaveValue(Number(value));
     });

@@ -59,13 +59,13 @@ describe('GrowthRecordList', () => {
     expect(screen.getByText('2025年01月15日 (水)')).toBeInTheDocument();
     expect(screen.getByText('草丈: 15.5 cm')).toBeInTheDocument();
     expect(screen.getByText('葉の数: 8枚')).toBeInTheDocument();
-    expect(screen.getByText('気温: 22℃')).toBeInTheDocument();
+    expect(screen.getByText('気温: 22°C')).toBeInTheDocument();
     expect(screen.getByText('順調に成長中')).toBeInTheDocument();
 
     expect(screen.getByText('2025年01月10日 (金)')).toBeInTheDocument();
     expect(screen.getByText('草丈: 12.3 cm')).toBeInTheDocument();
     expect(screen.getByText('葉の数: 6枚')).toBeInTheDocument();
-    expect(screen.getByText('気温: 20℃')).toBeInTheDocument();
+    expect(screen.getByText('気温: 20°C')).toBeInTheDocument();
     expect(screen.getByText('少し成長が遅い')).toBeInTheDocument();
 
     // 天気アイコンが正しく表示されていること
@@ -103,6 +103,10 @@ describe('GrowthRecordList', () => {
   });
 
   it('削除ボタンが機能すること', () => {
+    // window.confirmをモック
+    const originalConfirm = window.confirm;
+    window.confirm = jest.fn(() => true);
+
     render(
       <GrowthRecordList 
         records={mockRecords} 
@@ -117,6 +121,9 @@ describe('GrowthRecordList', () => {
 
     // onDeleteが正しいIDで呼ばれたことを確認
     expect(mockOnDelete).toHaveBeenCalledWith(mockRecords[0].id);
+
+    // モックを元に戻す
+    window.confirm = originalConfirm;
   });
 
   it('isEditableがfalseの場合、編集・削除ボタンが表示されないこと', () => {
