@@ -44,10 +44,11 @@ export const GrowthRecordForm = ({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
             記録日 <span className="text-red-500">*</span>
           </label>
           <input
+            id="date"
             type="date"
             {...register('date', { required: '記録日は必須です' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark sm:text-sm"
@@ -58,10 +59,11 @@ export const GrowthRecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="weather" className="block text-sm font-medium text-gray-700 mb-1">
             天気 <span className="text-red-500">*</span>
           </label>
           <select
+            id="weather"
             {...register('weather', { required: '天気を選択してください' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark sm:text-sm"
           >
@@ -74,11 +76,12 @@ export const GrowthRecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="temperature" className="block text-sm font-medium text-gray-700 mb-1">
             気温 (°C) <span className="text-red-500">*</span>
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
             <input
+              id="temperature"
               type="number"
               step="0.1"
               {...register('temperature', {
@@ -102,11 +105,12 @@ export const GrowthRecordForm = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-1">
             草丈 (cm) <span className="text-red-500">*</span>
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
             <input
+              id="height"
               type="number"
               step="0.1"
               {...register('height', {
@@ -126,10 +130,11 @@ export const GrowthRecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="leafCount" className="block text-sm font-medium text-gray-700 mb-1">
             葉の枚数 <span className="text-red-500">*</span>
           </label>
           <input
+            id="leafCount"
             type="number"
             min="0"
             {...register('leafCount', {
@@ -147,10 +152,11 @@ export const GrowthRecordForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
           観察メモ
         </label>
         <textarea
+          id="notes"
           rows={3}
           {...register('notes')}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark sm:text-sm"
