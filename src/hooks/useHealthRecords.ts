@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { HealthIssue, HealthStats, HealthStatus } from '../types/healthRecord';
 
 const STORAGE_KEY = 'teaHealthRecords';
@@ -16,7 +16,7 @@ export const useHealthRecords = (teaId?: string) => {
   }, [records]);
 
   // 健康状態の評価
-  const getHealthStatus = (): HealthStatus => {
+  const getHealthStatus = useCallback((): HealthStatus => {
     const teaRecords = teaId 
       ? records.filter(record => record.teaId === teaId && record.status !== 'resolved')
       : records.filter(record => record.status !== 'resolved');
@@ -25,10 +25,10 @@ export const useHealthRecords = (teaId?: string) => {
     if (teaRecords.some(r => r.severity === 'medium')) return 'warning';
     if (teaRecords.length > 0) return 'needs_attention';
     return 'healthy';
-  };
+  }, [records, teaId]);
 
   // 統計情報の計算
-  const getHealthStats = (): HealthStats => {
+  const getHealthStats = useCallback((): HealthStats => {
     const teaRecords = teaId 
       ? records.filter(record => record.teaId === teaId)
       : records;
@@ -68,49 +68,52 @@ export const useHealthRecords = (teaId?: string) => {
       },
       recentIssues,
     };
-  };
+  }, [records, teaId]);
 
   // 記録の追加
-  const addRecord = (record: Omit<HealthIssue, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addRecord = useCallback((record: Omit<HealthIssue, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newRecord: HealthIssue = {
       ...record,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setRecords([...records, newRecord]);
+    setRecords(prev => [...prev, newRecord]);
     return newRecord;
-  };
+  }, []);
 
   // 記録の更新
-  const updateRecord = (id: string, updates: Partial<HealthIssue>) => {
-    const updatedRecords = records.map(record =>
+  const updateRecord = useCallback((id: string, updates: Partial<HealthIssue>) => {
+    setRecords(prev => prev.map(record =>
       record.id === id 
         ? { ...record, ...updates, updatedAt: new Date().toISOString() }
         : record
-    );
-    setRecords(updatedRecords);
-  };
+    ));
+  }, []);
 
   // 記録の削除
-  const deleteRecord = (id: string) => {
-    setRecords(records.filter(record => record.id !== id));
-  };
+  const deleteRecord = useCallback((id: string) => {
+    setRecords(prev => prev.filter(record => record.id !== id));
+  }, []);
 
   // IDによる記録の取得
-  const getRecord = (id: string) => {
+  const getRecord = useCallback((id: string) => {
     return records.find(record => record.id === id);
-  };
+  }, [records]);
 
   // 品種IDによる記録のフィルタリング
-  const getRecordsByTeaId = (id: string) => {
+  const getRecordsByTeaId = useCallback((id: string) => {
     return records
       .filter(record => record.teaId === id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  };
+  }, [records]);
+
+  const filteredRecords = useMemo(() => {
+    return teaId ? getRecordsByTeaId(teaId) : records;
+  }, [teaId, records, getRecordsByTeaId]);
 
   return {
-    records: teaId ? getRecordsByTeaId(teaId) : records,
+    records: filteredRecords,
     healthStatus: getHealthStatus(),
     healthStats: getHealthStats(),
     addRecord,

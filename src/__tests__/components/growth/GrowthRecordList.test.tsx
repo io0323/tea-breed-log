@@ -94,11 +94,10 @@ describe('GrowthRecordList', () => {
       />
     );
 
-    // 最初のレコードの編集ボタンをクリック
-    const editButtons = screen.getAllByRole('button', { name: /編集/ });
+    // 最初のレコードの編集ボタンをクリック（アイコン要素）
+    const editButtons = screen.getAllByRole('button');
     fireEvent.click(editButtons[0]);
-
-    // onEditが正しい引数で呼ばれたことを確認
+    
     expect(mockOnEdit).toHaveBeenCalledWith(mockRecords[0]);
   });
 
@@ -115,9 +114,9 @@ describe('GrowthRecordList', () => {
       />
     );
 
-    // 最初のレコードの削除ボタンをクリック
-    const deleteButtons = screen.getAllByRole('button', { name: /削除/ });
-    fireEvent.click(deleteButtons[0]);
+    // 最初のレコードの削除ボタンをクリック（アイコン要素）
+    const deleteButtons = screen.getAllByRole('button');
+    fireEvent.click(deleteButtons[1]); // 2番目のボタン（削除）
 
     // onDeleteが正しいIDで呼ばれたことを確認
     expect(mockOnDelete).toHaveBeenCalledWith(mockRecords[0].id);

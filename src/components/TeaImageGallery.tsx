@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../lib/supabaseClient';
 
@@ -20,7 +20,7 @@ export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaIm
     );
   }
 
-  const handleDelete = async (imageUrl: string, e: React.MouseEvent) => {
+  const handleDelete = useCallback(async (imageUrl: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!window.confirm('この画像を削除してもよろしいですか？')) {
@@ -45,7 +45,7 @@ export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaIm
       console.error('Error deleting image:', error);
       alert('画像の削除に失敗しました');
     }
-  };
+  }, [teaId, onImageDelete]);
 
   return (
     <div className="mt-6">
