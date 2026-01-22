@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { TeaVariety } from "../types/teaVariety";
 
 type TeaFormData = Omit<TeaVariety, 'id' | 'images'> & {
@@ -12,7 +12,7 @@ interface TeaFormProps {
   onCancel: () => void;
 }
 
-export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
+export const TeaForm = memo(({ initialData, onSubmit, onCancel }: TeaFormProps) => {
   const [formData, setFormData] = useState<TeaFormData>({
     name: "",
     generation: "F1",
@@ -37,25 +37,33 @@ export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
     }
   }, [initialData]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name.endsWith("Rate") || 
-              name.endsWith("Score") || 
-              name.endsWith("Resistance") ||
-              name === "year"
+  const handleCancel = useCallback(() => {
+    onCancel();
+  }, [onCancel]);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: name.endsWith("Rate") || 
+                name.endsWith("Score") || 
+                name.endsWith("Resistance") ||
+                name === "year"
         ? Number(value)
         : value,
-    }));
-  };
+      }));
+    },
+    []
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      onSubmit(formData);
+    },
+    [formData, onSubmit]
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,7 +218,7 @@ export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
       <div className="flex justify-end space-x-3 pt-4">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
         >
           キャンセル
@@ -224,4 +232,6 @@ export const TeaForm = ({ initialData, onSubmit, onCancel }: TeaFormProps) => {
       </div>
     </form>
   );
-};
+});
+
+TeaForm.displayName = 'TeaForm';
