@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../lib/supabaseClient';
 
@@ -9,8 +9,84 @@ interface TeaImageGalleryProps {
   isOwner: boolean;
 }
 
-export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaImageGalleryProps) => {
+// 画像遅延読み込みコンポーネント
+const LazyImage = memo(({ src, alt, className, onClick }: { 
+  src: string; 
+  alt: string; 
+  className?: string; 
+  onClick?: () => void;
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    setIsLoaded(true);
+  }, []);
+
+  return (
+    <div ref={imgRef} className="relative overflow-hidden">
+      {!isLoaded && isInView && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+      )}
+      {isInView && (
+        <img
+          src={src}
+          alt={alt}
+          className={`${className} transition-opacity duration-300 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={handleLoad}
+          onClick={onClick}
+          loading="lazy"
+        />
+      )}
+    </div>
+  );
+});
+
+LazyImage.displayName = 'LazyImage';
+
+export const TeaImageGallery = memo(({ images, teaId, onImageDelete, isOwner }: TeaImageGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageCache, setImageCache] = useState<Map<string, string>>(new Map());
+
+  // 画像URLの最適化（サムネイル生成）
+  const getOptimizedImageUrl = useCallback((url: string, size: 'small' | 'medium' | 'large' = 'medium') => {
+    // Supabase Storage の画像変換機能を使用
+    if (url.includes('supabase')) {
+      const transformations = {
+        small: 'width=200,height=200,quality=60',
+        medium: 'width=400,height=400,quality=75',
+        large: 'width=800,height=800,quality=85'
+      };
+      return `${url}?${transformations[size]}`;
+    }
+    return url;
+  }, []);
+
+  // 画像キャッシュ管理
+  const getCachedImage = useCallback((url: string) => {
+    return imageCache.get(url) || getOptimizedImageUrl(url, 'small');
+  }, [imageCache, getOptimizedImageUrl]);
 
   if (images.length === 0) {
     return (
@@ -59,8 +135,8 @@ export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaIm
             onClick={() => setSelectedImage(imageUrl)}
           >
             <div className="aspect-square bg-gray-100 rounded-md overflow-hidden">
-              <img
-                src={imageUrl}
+              <LazyImage
+                src={getCachedImage(imageUrl)}
                 alt={`品種画像 ${index + 1}`}
                 className="w-full h-full object-cover hover:opacity-90 transition-opacity"
               />
@@ -97,8 +173,8 @@ export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaIm
             >
               <XMarkIcon className="h-8 w-8" />
             </button>
-            <img
-              src={selectedImage}
+            <LazyImage
+              src={getOptimizedImageUrl(selectedImage, 'large')}
               alt="拡大表示"
               className="max-w-full max-h-[80vh] mx-auto object-contain"
             />
@@ -107,4 +183,4 @@ export const TeaImageGallery = ({ images, teaId, onImageDelete, isOwner }: TeaIm
       )}
     </div>
   );
-};
+});

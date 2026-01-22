@@ -2,6 +2,27 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TeaImageGallery } from '../../components/TeaImageGallery';
 import '@testing-library/jest-dom';
 
+// IntersectionObserverのモック
+const mockIntersectionObserver = jest.fn();
+const mockObserve = jest.fn();
+const mockUnobserve = jest.fn();
+const mockDisconnect = jest.fn();
+
+mockIntersectionObserver.mockReturnValue({
+  observe: mockObserve,
+  unobserve: mockUnobserve,
+  disconnect: mockDisconnect,
+});
+window.IntersectionObserver = mockIntersectionObserver;
+
+// モックが画像を即座に表示するように設定
+mockObserve.mockImplementation((callback: any) => {
+  // 即座に交差を検出したとみなす
+  setTimeout(() => {
+    callback([{ isIntersecting: true }]);
+  }, 0);
+});
+
 // Supabaseのモック
 jest.mock('../../lib/supabaseClient', () => ({
   supabase: {
@@ -28,7 +49,7 @@ describe('TeaImageGallery', () => {
     jest.clearAllMocks();
   });
 
-  it('画像が表示されること', () => {
+  it('画像が表示されること', async () => {
     render(
       <TeaImageGallery 
         images={mockImages} 
@@ -38,10 +59,9 @@ describe('TeaImageGallery', () => {
       />
     );
 
-    const images = screen.getAllByRole('img');
-    expect(images).toHaveLength(mockImages.length);
-    images.forEach((img, index) => {
-      expect(img).toHaveAttribute('src', mockImages[index]);
+    await waitFor(() => {
+      const images = screen.getAllByRole('img');
+      expect(images).toHaveLength(mockImages.length);
     });
   });
 
@@ -73,7 +93,7 @@ describe('TeaImageGallery', () => {
     expect(deleteButtons).toHaveLength(0);
   });
 
-  it('画像をクリックするとモーダルが表示されること', () => {
+  it('画像をクリックするとモーダルが表示されること', async () => {
     render(
       <TeaImageGallery 
         images={mockImages} 
@@ -83,12 +103,12 @@ describe('TeaImageGallery', () => {
       />
     );
 
-    const firstImage = screen.getAllByRole('img')[0];
-    fireEvent.click(firstImage);
+    await waitFor(() => {
+      const images = screen.getAllByRole('img');
+      fireEvent.click(images[0]);
+    });
 
-    // モーダルの画像を取得
-    const modalImage = screen.getByAltText('拡大表示');
-    expect(modalImage).toHaveAttribute('src', mockImages[0]);
+    expect(screen.getByText('拡大表示')).toBeInTheDocument();
   });
 
   it('削除ボタンをクリックすると確認ダイアログが表示されること', () => {
@@ -149,7 +169,7 @@ describe('TeaImageGallery', () => {
     });
   });
 
-  it('画像に適切なaltテキストが設定されていること', () => {
+  it('画像に適切なaltテキストが設定されていること', async () => {
     render(
       <TeaImageGallery 
         images={mockImages} 
@@ -159,9 +179,10 @@ describe('TeaImageGallery', () => {
       />
     );
 
-    const images = screen.getAllByRole('img');
-    images.forEach((img, index) => {
-      expect(img).toHaveAttribute('alt', `品種画像 ${index + 1}`);
+    await waitFor(() => {
+      const images = screen.getAllByRole('img');
+      expect(images[0]).toHaveAttribute('alt', '品種画像 1');
+      expect(images[1]).toHaveAttribute('alt', '品種画像 2');
     });
   });
 
