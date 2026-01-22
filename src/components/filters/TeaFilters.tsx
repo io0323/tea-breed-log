@@ -1,5 +1,4 @@
 import { ChangeEvent } from "react";
-import { TeaVariety } from "../../types/teaVariety";
 
 interface TeaFiltersProps {
   filters: {
@@ -7,12 +6,14 @@ interface TeaFiltersProps {
     generation: string;
     year: string;
     search: string;
+    location: string;
   };
   onFilterChange: (filters: {
     status: string;
     generation: string;
     year: string;
     search: string;
+    location: string;
   }) => void;
   years: number[];
 }
@@ -29,6 +30,21 @@ export const TeaFilters = ({ filters, onFilterChange, years }: TeaFiltersProps) 
   return (
     <div className="bg-white p-4 rounded-lg shadow mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">場所</label>
+          <select
+            name="location"
+            value={filters.location}
+            onChange={handleChange}
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark"
+          >
+            <option value="">すべて</option>
+            <option value="静岡県">静岡県</option>
+            <option value="鹿児島県">鹿児島県</option>
+            <option value="宮崎県">宮崎県</option>
+          </select>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">状態</label>
           <select
