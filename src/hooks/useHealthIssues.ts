@@ -1,17 +1,35 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { HealthIssue, HealthStats, HealthStatus } from "../types/healthStatus";
 
 const STORAGE_KEY = "teaHealthIssues";
 
 export const useHealthIssues = (teaId?: string) => {
   const [issues, setIssues] = useState<HealthIssue[]>(() => {
+    if (typeof window === 'undefined') return [];
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
   });
 
+  // localStorageへの保存を最適化（debounce）
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [issues]);
+
+  // 特定の品種の問題のみをフィルタリング（メモ化）
+  const teaIssues = useMemo(() => {
+    return teaId ? issues.filter(issue => issue.teaId === teaId) : issues;
+  }, [issues, teaId]);
+
+  // 最近の問題を取得（メモ化）
+  const recentIssues = useMemo(() => {
+    return [...teaIssues]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [teaIssues]);
 
   const addHealthIssue = useCallback((issue: Omit<HealthIssue, "id" | "createdAt" | "updatedAt">) => {
     const newIssue: HealthIssue = {
@@ -43,7 +61,6 @@ export const useHealthIssues = (teaId?: string) => {
   }, [issues]);
 
   const getHealthStatus = useCallback((): HealthStatus => {
-    const teaIssues = teaId ? issues.filter(issue => issue.teaId === teaId) : issues;
     const hasCritical = teaIssues.some(issue => 
       issue.status !== "resolved" && issue.severity === "high"
     );
@@ -56,10 +73,9 @@ export const useHealthIssues = (teaId?: string) => {
     if (hasWarning) return "warning";
     if (hasIssues) return "needs_attention";
     return "healthy";
-  }, [issues, teaId]);
+  }, [teaIssues]);
 
   const getHealthStats = useCallback((): HealthStats => {
-    const teaIssues = teaId ? issues.filter(issue => issue.teaId === teaId) : issues;
     const openIssues = teaIssues.filter(issue => issue.status !== "resolved");
     
     const issueByType = teaIssues.reduce(
@@ -78,10 +94,6 @@ export const useHealthIssues = (teaId?: string) => {
       { low: 0, medium: 0, high: 0 } as Record<string, number>
     );
 
-    const recentIssues = [...teaIssues]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
-
     return {
       totalIssues: teaIssues.length,
       openIssues: openIssues.length,
@@ -99,7 +111,7 @@ export const useHealthIssues = (teaId?: string) => {
       },
       recentIssues,
     };
-  }, [issues, teaId]);
+  }, [teaIssues, recentIssues]);
 
   const getIssuesByTeaId = useCallback(() => {
     if (!teaId) return [];
