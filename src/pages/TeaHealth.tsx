@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTeaVarieties } from '../hooks/useTeaVarieties';
 import { useHealthRecords } from '../hooks/useHealthRecords';
@@ -7,7 +7,7 @@ import { HealthRecordList } from '../components/health/HealthRecordList';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { HealthIssue, HealthRecordFormData } from '../types/healthRecord';
 
-export const TeaHealth: React.FC = () => {
+export const TeaHealth: React.FC = memo(() => {
   const { id } = useParams<{ id: string }>();
   const { getTeaById } = useTeaVarieties();
   const {
@@ -22,7 +22,10 @@ export const TeaHealth: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<HealthIssue | null>(null);
 
-  const tea = id ? getTeaById(id) : null;
+  // teaの取得をメモ化
+  const tea = useMemo(() => {
+    return id ? getTeaById(id) : null;
+  }, [id, getTeaById]);
 
   const handleSubmit = useCallback((data: HealthRecordFormData) => {
     if (!id) return;
@@ -49,6 +52,22 @@ export const TeaHealth: React.FC = () => {
     setEditingRecord(record);
     setIsFormOpen(true);
   }, []);
+
+  const handleAdd = useCallback(() => {
+    setEditingRecord(null);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleCloseForm = useCallback(() => {
+    setIsFormOpen(false);
+    setEditingRecord(null);
+  }, []);
+
+  const handleDelete = useCallback((recordId: string) => {
+    if (window.confirm('この記録を削除してもよろしいですか？')) {
+      deleteRecord(recordId);
+    }
+  }, [deleteRecord]);
 
   const getStatusColor = useCallback(() => {
     switch (healthStatus) {
@@ -232,10 +251,7 @@ export const TeaHealth: React.FC = () => {
               <HealthRecordForm
                 initialData={editingRecord || undefined}
                 onSubmit={handleSubmit}
-                onCancel={() => {
-                  setIsFormOpen(false);
-                  setEditingRecord(null);
-                }}
+                onCancel={handleCloseForm}
               />
             </div>
           </div>
@@ -243,4 +259,6 @@ export const TeaHealth: React.FC = () => {
       )}
     </div>
   );
-};
+});
+
+TeaHealth.displayName = 'TeaHealth';
