@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useCallback, memo } from "react";
 
 interface TeaFiltersProps {
   filters: {
@@ -18,14 +18,15 @@ interface TeaFiltersProps {
   years: number[];
 }
 
-export const TeaFilters = ({ filters, onFilterChange, years }: TeaFiltersProps) => {
-  const handleChange = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+export const TeaFilters = memo(({ filters, onFilterChange, years }: TeaFiltersProps) => {
+  // フィルター変更ハンドラをメモ化
+  const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     onFilterChange({
       ...filters,
       [name]: value,
     });
-  };
+  }, [filters, onFilterChange]);
 
   return (
     <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -105,4 +106,6 @@ export const TeaFilters = ({ filters, onFilterChange, years }: TeaFiltersProps) 
       </div>
     </div>
   );
-};
+});
+
+TeaFilters.displayName = 'TeaFilters';

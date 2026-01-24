@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { HealthIssue, HealthRecordFormData } from '../../types/healthRecord';
 import { format } from 'date-fns';
+import { memo, useMemo, useCallback } from 'react';
 
 interface HealthRecordFormProps {
   initialData?: Partial<HealthIssue>;
@@ -10,27 +11,27 @@ interface HealthRecordFormProps {
   isSubmitting?: boolean;
 }
 
-const issueTypes = [
+const issueTypes = useMemo(() => [
   { value: 'disease', label: '病気' },
   { value: 'pest', label: '害虫' },
   { value: 'nutrition', label: '栄養障害' },
   { value: 'environmental', label: '環境要因' },
   { value: 'other', label: 'その他' },
-];
+], []);
 
-const severityLevels = [
+const severityLevels = useMemo(() => [
   { value: 'low', label: '軽度' },
   { value: 'medium', label: '中程度' },
   { value: 'high', label: '重度' },
-];
+], []);
 
-const statusOptions = [
+const statusOptions = useMemo(() => [
   { value: 'open', label: '未対応' },
   { value: 'in_progress', label: '対応中' },
   { value: 'resolved', label: '解決済み' },
-];
+], []);
 
-export const HealthRecordForm: React.FC<HealthRecordFormProps> = ({
+export const HealthRecordForm: React.FC<HealthRecordFormProps> = memo(({
   initialData,
   onSubmit,
   onCancel,
@@ -51,8 +52,18 @@ export const HealthRecordForm: React.FC<HealthRecordFormProps> = ({
     },
   });
 
+  // フォーム送信ハンドラをメモ化
+  const handleFormSubmit = useCallback((data: HealthRecordFormData) => {
+    onSubmit(data);
+  }, [onSubmit]);
+
+  // キャンセルハンドラをメモ化
+  const handleCancel = useCallback(() => {
+    onCancel();
+  }, [onCancel]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="health-date" className="block text-sm font-medium text-gray-700 mb-1">
@@ -157,7 +168,7 @@ export const HealthRecordForm: React.FC<HealthRecordFormProps> = ({
       <div className="flex justify-end space-x-3 pt-4">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
           disabled={isSubmitting}
         >
@@ -173,4 +184,6 @@ export const HealthRecordForm: React.FC<HealthRecordFormProps> = ({
       </div>
     </form>
   );
-};
+});
+
+HealthRecordForm.displayName = 'HealthRecordForm';
