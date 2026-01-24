@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { GrowthRecord, GrowthRecordFormData } from '../../types/growthRecord';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { memo, useMemo, useCallback } from 'react';
 
 interface GrowthRecordFormProps {
   initialData?: Partial<GrowthRecord>;
@@ -10,7 +11,7 @@ interface GrowthRecordFormProps {
   isSubmitting?: boolean;
 }
 
-export const GrowthRecordForm = ({
+export const GrowthRecordForm = memo(({
   initialData,
   onSubmit,
   onCancel,
@@ -33,15 +34,26 @@ export const GrowthRecordForm = ({
     },
   });
 
-  const weatherOptions = [
+  // 天気オプションをメモ化
+  const weatherOptions = useMemo(() => [
     { value: 'sunny', label: '晴れ' },
     { value: 'cloudy', label: '曇り' },
     { value: 'rainy', label: '雨' },
     { value: 'snowy', label: '雪' },
-  ];
+  ], []);
+
+  // フォーム送信ハンドラをメモ化
+  const handleFormSubmit = useCallback((data: GrowthRecordFormData) => {
+    onSubmit(data);
+  }, [onSubmit]);
+
+  // キャンセルハンドラをメモ化
+  const handleCancel = useCallback(() => {
+    onCancel();
+  }, [onCancel]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
@@ -167,7 +179,7 @@ export const GrowthRecordForm = ({
       <div className="flex justify-end space-x-3 pt-4">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
           disabled={isSubmitting}
         >
@@ -183,4 +195,6 @@ export const GrowthRecordForm = ({
       </div>
     </form>
   );
-};
+});
+
+GrowthRecordForm.displayName = 'GrowthRecordForm';
