@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef, useEffect, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../lib/supabaseClient';
+import { LazyImage } from './LazyImage';
 
 interface TeaImageGalleryProps {
   images: string[];
@@ -9,61 +10,7 @@ interface TeaImageGalleryProps {
   isOwner: boolean;
 }
 
-// 画像遅延読み込みコンポーネント
-const LazyImage = memo(({ src, alt, className, onClick }: { 
-  src: string; 
-  alt: string; 
-  className?: string; 
-  onClick?: () => void;
-}) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  const handleLoad = useCallback(() => {
-    setIsLoaded(true);
-  }, []);
-
-  return (
-    <div ref={imgRef} className="relative overflow-hidden">
-      {!isLoaded && isInView && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-      )}
-      {isInView && (
-        <img
-          src={src}
-          alt={alt}
-          className={`${className} transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={handleLoad}
-          onClick={onClick}
-          loading="lazy"
-        />
-      )}
-    </div>
-  );
-});
-
-LazyImage.displayName = 'LazyImage';
+// 画像遅延読み込みコンポーネントはLazyImage.tsxに移動
 
 export const TeaImageGallery = memo(({ images, teaId, onImageDelete, isOwner }: TeaImageGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
