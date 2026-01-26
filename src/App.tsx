@@ -12,6 +12,8 @@ const TeaHealth = lazy(() => import("./pages/TeaHealth").then((m: any) => m.defa
 const TeaDetails = lazy(() => import("./pages/TeaDetails").then((m: any) => m.default));
 const EditTea = lazy(() => import("./pages/EditTea").then((m: any) => m.default));
 const NewTea = lazy(() => import("./pages/NewTea").then((m: any) => m.default));
+const Dashboard = lazy(() => import("./pages/Dashboard").then((m: any) => m.default));
+const TeaComparison = lazy(() => import("./pages/TeaComparison").then((m: any) => m.default));
 
 function App() {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -82,6 +84,14 @@ function App() {
             <Route
               path="/teas/:id/health"
               element={session ? <TeaHealth /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/dashboard"
+              element={session ? <Dashboard /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/comparison"
+              element={session ? <TeaComparison /> : <Navigate to="/login" replace />}
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

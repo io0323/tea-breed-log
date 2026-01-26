@@ -132,13 +132,27 @@ export const TeaList = memo(({ className = '' }: TeaListProps) => {
               栽培しているお茶の品種を管理・確認できます
             </p>
           </div>
-          <Link
-            to="/teas/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-tea-dark hover:bg-tea-brown focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
-          >
+          <div className="flex space-x-4">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
+            >
+              📊 ダッシュボード
+            </Link>
+            <Link
+              to="/comparison"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
+            >
+              ⚖️ 品種比較
+            </Link>
+            <Link
+              to="/teas/new"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-tea-dark hover:bg-tea-brown focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
+            >
             <PlusIcon className="h-5 w-5 mr-2" />
             新規登録
           </Link>
+          </div>
         </div>
 
         {/* 統計情報 */}
