@@ -5,6 +5,9 @@ import { TeaHealth } from "./pages/TeaHealth";
 import { TeaDetails } from "./pages/TeaDetails";
 import { EditTea } from "./pages/EditTea";
 import { NewTea } from "./pages/NewTea";
+import { Dashboard } from "./pages/Dashboard";
+import { TeaComparison } from "./pages/TeaComparison";
+import { DataVisualizationDashboard } from "./pages/DataVisualizationDashboard";
 import { supabase } from "./lib/supabaseClient";
 import { useEffect, useState } from "react";
 import { AuthSession } from "@supabase/supabase-js";
@@ -76,6 +79,18 @@ function App() {
           <Route
             path="/teas/:id/health"
             element={session ? <TeaHealth /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/dashboard"
+            element={session ? <Dashboard /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/comparison"
+            element={session ? <TeaComparison /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/data-visualization"
+            element={session ? <DataVisualizationDashboard /> : <Navigate to="/login" replace />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
