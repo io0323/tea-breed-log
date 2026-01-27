@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HealthRecordList } from '../../../../src/components/health/HealthRecordList';
 import { HealthIssue } from '../../../../src/types/healthRecord';
@@ -14,11 +13,8 @@ const mockRecords: HealthIssue[] = [
     severity: 'high' as const,
     description: 'うどんこ病を確認',
     status: 'open' as const,
-    treatment: '薬剤散布を実施',
-    notes: '経過観察が必要',
     createdAt: '2025-01-15T00:00:00.000Z',
     updatedAt: '2025-01-15T00:00:00.000Z',
-    resolvedAt: null,
   },
   {
     id: '2',
@@ -28,11 +24,8 @@ const mockRecords: HealthIssue[] = [
     severity: 'medium' as const,
     description: 'アブラムシを確認',
     status: 'in_progress' as const,
-    treatment: '殺虫剤を散布',
-    notes: '効果を確認中',
     createdAt: '2025-01-10T00:00:00.000Z',
     updatedAt: '2025-01-12T00:00:00.000Z',
-    resolvedAt: null,
   },
   {
     id: '3',
@@ -42,11 +35,8 @@ const mockRecords: HealthIssue[] = [
     severity: 'low' as const,
     description: '葉の色が薄い',
     status: 'resolved' as const,
-    treatment: '肥料を追加',
-    notes: '改善を確認',
     createdAt: '2025-01-05T00:00:00.000Z',
     updatedAt: '2025-01-08T00:00:00.000Z',
-    resolvedAt: '2025-01-08T00:00:00.000Z',
   },
 ];
 

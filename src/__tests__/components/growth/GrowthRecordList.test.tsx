@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { GrowthRecordList } from '../../../../src/components/growth/GrowthRecordList';
 import { GrowthRecord } from '../../../../src/types/growthRecord';
