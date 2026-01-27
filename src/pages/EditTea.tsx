@@ -1,14 +1,27 @@
-import { useState, useEffect } from "react";
+import { useCallback, memo, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTeaVarieties } from "../../hooks/useTeaVarieties";
 import { TeaForm } from "../../components/TeaForm";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { TeaVariety } from "../../types/teaVariety";
 
-export const EditTea = () => {
+export const EditTea = memo(() => {
   const { id } = useParams<{ id: string }>();
   const { teaVarieties, updateTea } = useTeaVarieties();
   const navigate = useNavigate();
-  const tea = teaVarieties.find((t) => t.id === id);
+
+  const tea = useMemo(() => teaVarieties.find((t) => t.id === id), [teaVarieties, id]);
+
+  const handleSubmit = useCallback(async (updatedTea: Omit<TeaVariety, "id">) => {
+    if (!id) return;
+    await updateTea(id, updatedTea);
+    navigate(`/teas/${id}`);
+  }, [id, updateTea, navigate]);
+
+  const handleCancel = useCallback(() => {
+    if (!id) return;
+    navigate(`/teas/${id}`);
+  }, [id, navigate]);
 
   if (!tea) {
     return (
@@ -17,11 +30,6 @@ export const EditTea = () => {
       </div>
     );
   }
-
-  const handleSubmit = async (updatedTea: Omit<TeaVariety, "id">) => {
-    await updateTea(id, updatedTea);
-    navigate(`/teas/${id}`);
-  };
 
   return (
     <div className="max-w-3xl mx-auto p-4">
@@ -38,9 +46,11 @@ export const EditTea = () => {
         <TeaForm
           initialData={tea}
           onSubmit={handleSubmit}
-          onCancel={() => navigate(`/teas/${id}`)}
+          onCancel={handleCancel}
         />
       </div>
     </div>
   );
-};
+});
+
+EditTea.displayName = 'EditTea';

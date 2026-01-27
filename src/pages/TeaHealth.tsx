@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useMemo, memo } from 'react';
+import { useParams } from 'react-router-dom';
 import { useTeaVarieties } from '../hooks/useTeaVarieties';
 import { useHealthRecords } from '../hooks/useHealthRecords';
 import { HealthRecordForm } from '../components/health/HealthRecordForm';
 import { HealthRecordList } from '../components/health/HealthRecordList';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { format } from 'date-fns';
+import { HealthIssue, HealthRecordFormData } from '../types/healthRecord';
 
-export const TeaHealth: React.FC = () => {
+export const TeaHealth: React.FC = memo(() => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { getTeaById } = useTeaVarieties();
   const {
     records,
@@ -23,9 +22,12 @@ export const TeaHealth: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<HealthIssue | null>(null);
 
-  const tea = id ? getTeaById(id) : null;
+  // teaの取得をメモ化
+  const tea = useMemo(() => {
+    return id ? getTeaById(id) : null;
+  }, [id, getTeaById]);
 
-  const handleSubmit = (data: HealthRecordFormData) => {
+  const handleSubmit = useCallback((data: HealthRecordFormData) => {
     if (!id) return;
 
     const recordData = {
@@ -44,14 +46,30 @@ export const TeaHealth: React.FC = () => {
     
     setIsFormOpen(false);
     setEditingRecord(null);
-  };
+  }, [id, editingRecord, updateRecord, addRecord]);
 
-  const handleEdit = (record: HealthIssue) => {
+  const handleEdit = useCallback((record: HealthIssue) => {
     setEditingRecord(record);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const getStatusColor = () => {
+  const handleAdd = useCallback(() => {
+    setEditingRecord(null);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleCloseForm = useCallback(() => {
+    setIsFormOpen(false);
+    setEditingRecord(null);
+  }, []);
+
+  const handleDelete = useCallback((recordId: string) => {
+    if (window.confirm('この記録を削除してもよろしいですか？')) {
+      deleteRecord(recordId);
+    }
+  }, [deleteRecord]);
+
+  const getStatusColor = useCallback(() => {
     switch (healthStatus) {
       case 'healthy':
         return 'bg-green-100 text-green-800';
@@ -64,9 +82,9 @@ export const TeaHealth: React.FC = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
+  }, [healthStatus]);
 
-  const getStatusText = () => {
+  const getStatusText = useCallback(() => {
     switch (healthStatus) {
       case 'healthy':
         return '良好';
@@ -79,7 +97,7 @@ export const TeaHealth: React.FC = () => {
       default:
         return '不明';
     }
-  };
+  }, [healthStatus]);
 
   if (id && !tea) {
     return (
@@ -233,10 +251,7 @@ export const TeaHealth: React.FC = () => {
               <HealthRecordForm
                 initialData={editingRecord || undefined}
                 onSubmit={handleSubmit}
-                onCancel={() => {
-                  setIsFormOpen(false);
-                  setEditingRecord(null);
-                }}
+                onCancel={handleCloseForm}
               />
             </div>
           </div>
@@ -244,4 +259,6 @@ export const TeaHealth: React.FC = () => {
       )}
     </div>
   );
-};
+});
+
+TeaHealth.displayName = 'TeaHealth';

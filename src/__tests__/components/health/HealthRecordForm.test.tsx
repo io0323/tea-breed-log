@@ -14,8 +14,7 @@ const initialData = {
   severity: 'medium' as const,
   description: 'テストの健康記録',
   status: 'open' as const,
-  treatment: 'テスト治療',
-  notes: 'テストメモ',
+  solution: 'テスト対策',
   createdAt: '2025-01-13T00:00:00.000Z',
   updatedAt: '2025-01-13T00:00:00.000Z',
   resolvedAt: null,
@@ -36,12 +35,12 @@ describe('HealthRecordForm', () => {
     );
 
     // デフォルト値の確認
-    expect(screen.getByLabelText(/記録日/)).toHaveValue(
+    expect(screen.getByLabelText(/日付/)).toHaveValue(
       format(new Date(), 'yyyy-MM-dd')
     );
-    expect(screen.getByLabelText(/状態/)).toHaveValue('open');
+    expect(screen.getByLabelText(/ステータス/)).toHaveValue('open');
     expect(screen.getByLabelText(/深刻度/)).toHaveValue('medium');
-    expect(screen.getByLabelText(/詳細/)).toHaveValue('');
+    expect(screen.getByLabelText(/症状・問題の詳細/)).toHaveValue('');
   });
 
   it('編集時にフォームが初期データで初期化されること', () => {
@@ -54,12 +53,11 @@ describe('HealthRecordForm', () => {
       />
     );
 
-    expect(screen.getByLabelText(/記録日/)).toHaveValue(initialData.date);
-    expect(screen.getByLabelText(/種類/)).toHaveValue(initialData.type);
+    expect(screen.getByLabelText(/日付/)).toHaveValue(initialData.date);
+    expect(screen.getByLabelText(/問題の種類/)).toHaveValue(initialData.type);
     expect(screen.getByLabelText(/深刻度/)).toHaveValue(initialData.severity);
-    expect(screen.getByLabelText(/詳細/)).toHaveValue(initialData.description);
-    expect(screen.getByLabelText(/状態/)).toHaveValue(initialData.status);
-    expect(screen.getByLabelText(/治療内容/)).toHaveValue(initialData.treatment);
-    expect(screen.getByLabelText(/メモ/)).toHaveValue(initialData.notes);
+    expect(screen.getByLabelText(/症状・問題の詳細/)).toHaveValue(initialData.description);
+    expect(screen.getByLabelText(/ステータス/)).toHaveValue(initialData.status);
+    expect(screen.getByLabelText(/対策・処置内容/)).toHaveValue(initialData.solution);
   });
 });

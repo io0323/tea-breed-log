@@ -1,31 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { GrowthRecord } from '../types/growthRecord';
 
 const STORAGE_KEY = 'teaGrowthRecords';
 
 export const useGrowthRecords = (teaId?: string) => {
   const [records, setRecords] = useState<GrowthRecord[]>(() => {
+    if (typeof window === 'undefined') return [];
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 特定の品種の記録のみをフィルタリング
-  const teaRecords = teaId 
-    ? records.filter(record => record.teaId === teaId)
-    : records;
-
-  // 日付でソート（新しい順）
-  const sortedRecords = [...teaRecords].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-
-  // ローカルストレージに保存
+  // localStorageへの保存を最適化（debounce）
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [records]);
 
+  // 特定の品種の記録のみをフィルタリング（メモ化）
+  const teaRecords = useMemo(() => {
+    return teaId ? records.filter(record => record.teaId === teaId) : records;
+  }, [records, teaId]);
+
+  // 日付でソート（新しい順）（メモ化）
+  const sortedRecords = useMemo(() => {
+    return [...teaRecords].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [teaRecords]);
+
   // 成長記録を追加
-  const addRecord = (record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addRecord = useCallback((record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newRecord: GrowthRecord = {
       ...record,
       id: Date.now().toString(),
@@ -33,13 +40,13 @@ export const useGrowthRecords = (teaId?: string) => {
       updatedAt: new Date().toISOString(),
     };
     
-    setRecords([...records, newRecord]);
+    setRecords(prev => [...prev, newRecord]);
     return newRecord;
-  };
+  }, []);
 
   // 成長記録を更新
-  const updateRecord = (id: string, updates: Partial<GrowthRecord>) => {
-    const updatedRecords = records.map(record => 
+  const updateRecord = useCallback((id: string, updates: Partial<GrowthRecord>) => {
+    setRecords(prev => prev.map(record => 
       record.id === id 
         ? { 
             ...record, 
@@ -47,19 +54,35 @@ export const useGrowthRecords = (teaId?: string) => {
             updatedAt: new Date().toISOString() 
           } 
         : record
-    );
-    setRecords(updatedRecords);
-  };
+    ));
+  }, []);
 
   // 成長記録を削除
-  const deleteRecord = (id: string) => {
-    setRecords(records.filter(record => record.id !== id));
-  };
+  const deleteRecord = useCallback((id: string) => {
+    setRecords(prev => prev.filter(record => record.id !== id));
+  }, []);
 
   // 特定の記録を取得
-  const getRecordById = (id: string) => {
+  const getRecord = useCallback((id: string) => {
     return records.find(record => record.id === id);
-  };
+  }, [records]);
+
+  // 統計情報を計算（メモ化）
+  const statistics = useMemo(() => {
+    const total = teaRecords.length;
+    const avgHeight = total > 0 
+      ? teaRecords.reduce((sum, record) => sum + (record.height || 0), 0) / total 
+      : 0;
+    const avgLeafCount = total > 0 
+      ? teaRecords.reduce((sum, record) => sum + (record.leafCount || 0), 0) / total 
+      : 0;
+    
+    return {
+      total,
+      avgHeight: avgHeight.toFixed(1),
+      avgLeafCount: avgLeafCount.toFixed(1),
+    };
+  }, [teaRecords]);
 
   // 成長記録の統計を計算
   const getGrowthStats = () => {
@@ -84,10 +107,11 @@ export const useGrowthRecords = (teaId?: string) => {
 
   return {
     records: sortedRecords,
+    statistics,
     addRecord,
     updateRecord,
     deleteRecord,
-    getRecordById,
+    getRecord,
     getGrowthStats,
   };
 };

@@ -7,9 +7,10 @@ interface ImageUploaderProps {
   teaId: string;
   onUploadComplete: (imageUrl: string) => void;
   onError: (error: string) => void;
+  onClearError?: () => void;
 }
 
-export const ImageUploader = ({ teaId, onUploadComplete, onError }: ImageUploaderProps) => {
+export const ImageUploader = ({ teaId, onUploadComplete, onError, onClearError }: ImageUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -86,7 +87,21 @@ export const ImageUploader = ({ teaId, onUploadComplete, onError }: ImageUploade
       
       {preview && (
         <div className="mt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">プレビュー</h4>
+          <div className="flex justify-between items-center mb-2">
+            <h4 className="text-sm font-medium text-gray-700">プレビュー</h4>
+            {onClearError && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPreview(null);
+                  onClearError();
+                }}
+                className="text-sm text-red-600 hover:text-red-800"
+              >
+                クリア
+              </button>
+            )}
+          </div>
           <div className="relative w-40 h-40 border rounded-md overflow-hidden">
             <img
               src={preview}
