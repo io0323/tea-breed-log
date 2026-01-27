@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { GrowthRecordForm } from '../../../../src/components/growth/GrowthRecordForm';
 import { GrowthRecord } from '../../../../src/types/growthRecord';

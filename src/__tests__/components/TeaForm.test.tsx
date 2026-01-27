@@ -114,7 +114,7 @@ describe('TeaForm', () => {
       { label: '耐病性', name: 'diseaseResistance', value: '3' },
     ];
 
-    numberFields.forEach(({ label, name, value }) => {
+    numberFields.forEach(({ label, value }) => {
       const input = screen.getByLabelText(label);
       fireEvent.change(input, { target: { value } });
       expect(input).toHaveValue(Number(value));

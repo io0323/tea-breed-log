@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { HealthRecordForm } from '../../../components/health/HealthRecordForm';
 import { format } from 'date-fns';
 import '@testing-library/jest-dom';

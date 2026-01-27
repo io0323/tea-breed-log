@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TeaHealth } from '../../pages/TeaHealth';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';

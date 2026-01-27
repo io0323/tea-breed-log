@@ -59,7 +59,12 @@ function App() {
           />
           <Route
             path="/"
-            element={session ? <TeaList /> : <Navigate to="/login" replace />}
+            element={session ? <TeaList 
+              teas={[]} 
+              onTeaSelect={() => {}} 
+              onTeaEdit={() => {}} 
+              onTeaDelete={() => {}} 
+            /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/teas/new"
