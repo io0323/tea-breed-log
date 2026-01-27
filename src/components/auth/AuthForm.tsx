@@ -3,9 +3,10 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "../../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { AuthSession } from "@supabase/supabase-js";
 
 export const AuthForm = () => {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {

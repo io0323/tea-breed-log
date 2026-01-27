@@ -2,11 +2,197 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TeaBreed Log</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA基本メタタグ -->
+    <meta name="theme-color" content="#3B82F6" />
+    <meta name="description" content="お茶品種管理と成長記録アプリ。品種の登録、成長記録、健康管理をスマートフォンで簡単管理。" />
+    <meta name="keywords" content="お茶,品種管理,成長記録,農業,PWA" />
+    <meta name="author" content="TeaBreed Log" />
+    
+    <!-- Apple Web App -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TeaLog" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    
+    <!-- Microsoft Tile -->
+    <meta name="msapplication-TileColor" content="#3B82F6" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="TeaBreed Log - お茶品種管理アプリ" />
+    <meta property="og:description" content="お茶品種の管理と成長記録をスマートフォンで。PWA対応でオフラインでも利用可能。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/og-image.png" />
+    <meta property="og:url" content="https://teabreed-log.app" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TeaBreed Log - お茶品種管理アプリ" />
+    <meta name="twitter:description" content="お茶品種の管理と成長記録をスマートフォンで。PWA対応でオフラインでも利用可能。" />
+    <meta name="twitter:image" content="/icons/twitter-image.png" />
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+    
+    <!-- Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-1668x2388.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/icons/apple-splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" />
+    
+    <title>TeaBreed Log - お茶品種管理アプリ</title>
+    
+    <!-- Critical CSS -->
+    <style>
+      /* フォントのフォールバック */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* ローディングスピナー */
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3B82F6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* スプラッシュ画面 */
+      .splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+      }
+      
+      .splash-logo {
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      }
+      
+      .splash-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      .splash-subtitle {
+        font-size: 16px;
+        opacity: 0.8;
+      }
+    </style>
   </head>
   <body>
+    <!-- スプラッシュ画面 -->
+    <div id="splash" class="splash-screen">
+      <div class="splash-logo">🍃</div>
+      <div class="splash-title">TeaBreed Log</div>
+      <div class="splash-subtitle">お茶品種管理アプリ</div>
+    </div>
+    
+    <!-- メインコンテナ -->
     <div id="root"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // スプラッシュ画面を非表示にする関数
+      function hideSplash() {
+        const splash = document.getElementById('splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            splash.remove();
+          }, 300);
+        }
+      }
+      
+      // Service Workerの登録
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+              
+              // アプリが読み込まれたらスプラッシュを非表示
+              hideSplash();
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+              
+              // Service Workerの登録に失敗してもスプラッシュを非表示
+              hideSplash();
+            });
+        });
+      } else {
+        // Service Workerがサポートされていない場合
+        hideSplash();
+      }
+      
+      // オンライン/オフライン状態の監視
+      window.addEventListener('online', () => {
+        console.log('App is online');
+        document.body.classList.remove('offline');
+      });
+      
+      window.addEventListener('offline', () => {
+        console.log('App is offline');
+        document.body.classList.add('offline');
+      });
+      
+      // タッチデバイスの検出
+      if ('ontouchstart' in window) {
+        document.body.classList.add('touch-device');
+      }
+    </script>
+    
+    <!-- メインアプリ -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
