@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TeaHealth } from '../../pages/TeaHealth';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -27,25 +26,21 @@ const mockHealthRecords = [
     severity: 'medium' as const,
     description: 'うどんこ病を確認',
     status: 'open' as const,
-    treatment: '薬剤散布',
-    notes: '経過観察中',
+    solution: '薬剤散布',
     createdAt: '2025-01-15T00:00:00.000Z',
     updatedAt: '2025-01-15T00:00:00.000Z',
-    resolvedAt: null,
   },
 ];
 
-const mockHealthStatus = {
-  status: 'warning' as const,
-  message: '健康状態に注意が必要です',
-  issues: ['うどんこ病を確認'],
-};
+const mockHealthStatus = 'warning' as const;
 
 const mockHealthStats = {
   totalIssues: 1,
   openIssues: 1,
   resolvedIssues: 0,
-  issueTypes: { disease: 1, pest: 0, nutrition: 0, environmental: 0, other: 0 },
+  issueByType: { disease: 1, pest: 0, nutrition: 0, environmental: 0, other: 0 },
+  issueBySeverity: { low: 0, medium: 1, high: 0 },
+  recentIssues: mockHealthRecords,
 };
 
 // モックの実装
@@ -89,10 +84,10 @@ describe('TeaHealth', () => {
     renderComponent();
     
     // ヘッダーが表示されていること
-    expect(screen.getByText('やぶきたの健康状態')).toBeInTheDocument();
+    expect(screen.getByText('やぶきたの健康管理')).toBeInTheDocument();
     
     // 健康状態が表示されていること
-    expect(screen.getByText('健康状態に注意が必要です')).toBeInTheDocument();
+    expect(screen.getByText('注意')).toBeInTheDocument();
     
     // 記録一覧が表示されていること
     expect(screen.getByText('うどんこ病を確認')).toBeInTheDocument();
@@ -106,7 +101,7 @@ describe('TeaHealth', () => {
     
     // フォームが表示されること
     await waitFor(() => {
-      expect(screen.getByText('健康記録を追加')).toBeInTheDocument();
+      expect(screen.getByText('新しい記録を追加')).toBeInTheDocument();
     });
   });
 
@@ -119,27 +114,24 @@ describe('TeaHealth', () => {
     
     // フォームが表示され、既存のデータがセットされていること
     await waitFor(() => {
-      expect(screen.getByText('健康記録を編集')).toBeInTheDocument();
+      expect(screen.getByText('記録を編集')).toBeInTheDocument();
       expect(screen.getByDisplayValue('うどんこ病を確認')).toBeInTheDocument();
     });
   });
 
   it('記録の削除ができること', async () => {
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+
     renderComponent();
     
     // 削除ボタンをクリック
     const deleteButton = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(deleteButton);
     
-    // 確認ダイアログが表示されること
-    expect(screen.getByText('本当に削除しますか？')).toBeInTheDocument();
-    
-    // 削除を確定
-    const confirmButton = screen.getByRole('button', { name: '削除' });
-    fireEvent.click(confirmButton);
-    
     // 削除関数が呼ばれること
     expect(mockDeleteRecord).toHaveBeenCalledWith('1');
+
+    confirmSpy.mockRestore();
   });
 
   it('お茶のデータがない場合はエラーメッセージを表示すること', () => {
@@ -148,22 +140,14 @@ describe('TeaHealth', () => {
     
     renderComponent('999');
     
-    expect(screen.getByText('お茶のデータが見つかりません')).toBeInTheDocument();
+    expect(screen.getByText('お茶の品種が見つかりません')).toBeInTheDocument();
   });
 
-  it('タブ切り替えが機能すること', () => {
+  it('問題の内訳が表示されること', () => {
     renderComponent();
-    
-    // 統計タブをクリック
-    fireEvent.click(screen.getByText('統計'));
-    
-    // 統計情報が表示されること
-    expect(screen.getByText('問題の種類別割合')).toBeInTheDocument();
-    
-    // 記録一覧タブをクリック
-    fireEvent.click(screen.getByText('記録一覧'));
-    
-    // 記録一覧が表示されること
-    expect(screen.getByText('うどんこ病を確認')).toBeInTheDocument();
+
+    expect(screen.getByText('問題の内訳')).toBeInTheDocument();
+    expect(screen.getAllByText('病気')).toHaveLength(2); // 見出しと内訳の2回
+    expect(screen.getAllByText('1件')).toHaveLength(2); // 内訳の2回
   });
 });

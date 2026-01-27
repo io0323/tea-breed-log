@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { TeaVariety } from "../types/teaVariety";
 
 const STORAGE_KEY = "teaVarieties";
@@ -51,49 +51,55 @@ const initialTeaVarieties: TeaVariety[] = [
 
 export const useTeaVarieties = () => {
   const [teaVarieties, setTeaVarieties] = useState<TeaVariety[]>(() => {
+    if (typeof window === 'undefined') return [];
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : initialTeaVarieties;
   });
 
+  // localStorage への保存を最適化（debounce）
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(teaVarieties));
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(teaVarieties));
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [teaVarieties]);
 
-  const addTea = (tea: Omit<TeaVariety, "id">) => {
+  const addTea = useCallback((tea: Omit<TeaVariety, "id">) => {
     const newTea: TeaVariety = {
       ...tea,
       id: Date.now().toString(),
       images: [], // 新しい品種には空の画像配列を追加
     };
-    setTeaVarieties([...teaVarieties, newTea]);
+    setTeaVarieties(prev => [...prev, newTea]);
     return newTea;
-  };
+  }, []);
 
-  const updateTea = (id: string, updatedTea: Partial<TeaVariety>) => {
-    setTeaVarieties(
-      teaVarieties.map((tea) =>
+  const updateTea = useCallback((id: string, updatedTea: Partial<TeaVariety>) => {
+    setTeaVarieties(prev =>
+      prev.map((tea) =>
         tea.id === id ? { ...tea, ...updatedTea } : tea
       )
     );
-  };
+  }, []);
 
-  const deleteTea = (id: string) => {
-    setTeaVarieties(teaVarieties.filter((tea) => tea.id !== id));
-  };
+  const deleteTea = useCallback((id: string) => {
+    setTeaVarieties(prev => prev.filter((tea) => tea.id !== id));
+  }, []);
 
-  const addTeaImage = (teaId: string, imageUrl: string) => {
-    setTeaVarieties(
-      teaVarieties.map((tea) =>
+  const addTeaImage = useCallback((teaId: string, imageUrl: string) => {
+    setTeaVarieties(prev =>
+      prev.map((tea) =>
         tea.id === teaId
           ? { ...tea, images: [...(tea.images || []), imageUrl] }
           : tea
       )
     );
-  };
+  }, []);
 
-  const removeTeaImage = (teaId: string, imageUrl: string) => {
-    setTeaVarieties(
-      teaVarieties.map((tea) =>
+  const removeTeaImage = useCallback((teaId: string, imageUrl: string) => {
+    setTeaVarieties(prev =>
+      prev.map((tea) =>
         tea.id === teaId
           ? {
               ...tea,
@@ -102,14 +108,29 @@ export const useTeaVarieties = () => {
           : tea
       )
     );
-  };
+  }, []);
 
-  const getTeaById = (id: string) => {
+  const getTeaById = useCallback((id: string) => {
     return teaVarieties.find((tea) => tea.id === id);
-  };
+  }, [teaVarieties]);
+
+  // 統計情報をメモ化
+  const statistics = useMemo(() => {
+    const activeCount = teaVarieties.filter(tea => tea.status === 'active').length;
+    const avgGrowthScore = teaVarieties.reduce((sum, tea) => sum + tea.growthScore, 0) / teaVarieties.length;
+    const avgDiseaseResistance = teaVarieties.reduce((sum, tea) => sum + tea.diseaseResistance, 0) / teaVarieties.length;
+    
+    return {
+      total: teaVarieties.length,
+      active: activeCount,
+      avgGrowthScore: avgGrowthScore.toFixed(1),
+      avgDiseaseResistance: avgDiseaseResistance.toFixed(1),
+    };
+  }, [teaVarieties]);
 
   return {
     teaVarieties,
+    statistics,
     addTea,
     updateTea,
     deleteTea,

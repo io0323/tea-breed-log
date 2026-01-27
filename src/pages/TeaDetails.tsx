@@ -2,11 +2,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTeaVarieties } from "../hooks/useTeaVarieties";
 import { useAuth } from "../contexts/AuthContext";
 import { ArrowLeftIcon, PhotoIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { ImageUploader } from "../components/ImageUploader";
 import { TeaImageGallery } from "../components/TeaImageGallery";
 
-export const TeaDetails = () => {
+export const TeaDetails = memo(() => {
   const { id } = useParams<{ id: string }>();
   const { 
     deleteTea, 
@@ -28,22 +28,39 @@ export const TeaDetails = () => {
     );
   }
 
-  const handleDelete = async () => {
-    if (window.confirm("この品種を削除してもよろしいですか？")) {
-      await deleteTea(tea.id);
-      navigate("/");
+  const handleDelete = useCallback(async () => {
+    if (!tea || !window.confirm("この品種を削除してもよろしいですか？")) {
+      return;
     }
-  };
+    await deleteTea(tea.id);
+    navigate("/");
+  }, [tea, deleteTea, navigate]);
 
-  const handleImageUpload = async (imageUrl: string) => {
-    if (!id) return;
-    addTeaImage(id, imageUrl);
-  };
+  const handleImageUpload = useCallback(async (imageUrl: string) => {
+    if (!id || !tea) return;
+    setUploadError(null);
+    try {
+      await addTeaImage(id, imageUrl);
+    } catch (error) {
+      setUploadError("画像のアップロードに失敗しました");
+      console.error('Image upload error:', error);
+    }
+  }, [id, tea, addTeaImage]);
 
-  const handleImageDelete = (imageUrl: string) => {
-    if (!id) return;
-    removeTeaImage(id, imageUrl);
-  };
+  const handleImageDelete = useCallback((imageUrl: string) => {
+    if (!id || !tea) return;
+    setUploadError(null);
+    try {
+      removeTeaImage(id, imageUrl);
+    } catch (error) {
+      setUploadError("画像の削除に失敗しました");
+      console.error('Image delete error:', error);
+    }
+  }, [id, tea, removeTeaImage]);
+
+  const clearUploadError = useCallback(() => {
+    setUploadError(null);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-4 pb-12">
@@ -142,7 +159,8 @@ export const TeaDetails = () => {
           <ImageUploader 
             teaId={tea.id}
             onUploadComplete={handleImageUpload}
-            onError={(error) => setUploadError(error)}
+            onError={setUploadError}
+            onClearError={clearUploadError}
           />
           {uploadError && (
             <p className="mt-2 text-sm text-red-600">{uploadError}</p>
@@ -161,4 +179,6 @@ export const TeaDetails = () => {
       </div>
     </div>
   );
-};
+});
+
+TeaDetails.displayName = 'TeaDetails';

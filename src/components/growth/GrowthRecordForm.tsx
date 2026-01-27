@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { GrowthRecord, GrowthRecordFormData } from '../../types/growthRecord';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { memo, useMemo, useCallback } from 'react';
 
 interface GrowthRecordFormProps {
   initialData?: Partial<GrowthRecord>;
@@ -10,7 +11,7 @@ interface GrowthRecordFormProps {
   isSubmitting?: boolean;
 }
 
-export const GrowthRecordForm = ({
+export const GrowthRecordForm = memo(({
   initialData,
   onSubmit,
   onCancel,
@@ -33,21 +34,33 @@ export const GrowthRecordForm = ({
     },
   });
 
-  const weatherOptions = [
+  // 天気オプションをメモ化
+  const weatherOptions = useMemo(() => [
     { value: 'sunny', label: '晴れ' },
     { value: 'cloudy', label: '曇り' },
     { value: 'rainy', label: '雨' },
     { value: 'snowy', label: '雪' },
-  ];
+  ], []);
+
+  // フォーム送信ハンドラをメモ化
+  const handleFormSubmit = useCallback((data: GrowthRecordFormData) => {
+    onSubmit(data);
+  }, [onSubmit]);
+
+  // キャンセルハンドラをメモ化
+  const handleCancel = useCallback(() => {
+    onCancel();
+  }, [onCancel]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
             記録日 <span className="text-red-500">*</span>
           </label>
           <input
+            id="date"
             type="date"
             {...register('date', { required: '記録日は必須です' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark sm:text-sm"
@@ -58,10 +71,11 @@ export const GrowthRecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="weather" className="block text-sm font-medium text-gray-700 mb-1">
             天気 <span className="text-red-500">*</span>
           </label>
           <select
+            id="weather"
             {...register('weather', { required: '天気を選択してください' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark sm:text-sm"
           >
@@ -74,11 +88,12 @@ export const GrowthRecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="temperature" className="block text-sm font-medium text-gray-700 mb-1">
             気温 (°C) <span className="text-red-500">*</span>
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
             <input
+              id="temperature"
               type="number"
               step="0.1"
               {...register('temperature', {
@@ -102,11 +117,12 @@ export const GrowthRecordForm = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-1">
             草丈 (cm) <span className="text-red-500">*</span>
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
             <input
+              id="height"
               type="number"
               step="0.1"
               {...register('height', {
@@ -126,10 +142,11 @@ export const GrowthRecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="leafCount" className="block text-sm font-medium text-gray-700 mb-1">
             葉の枚数 <span className="text-red-500">*</span>
           </label>
           <input
+            id="leafCount"
             type="number"
             min="0"
             {...register('leafCount', {
@@ -147,10 +164,11 @@ export const GrowthRecordForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
           観察メモ
         </label>
         <textarea
+          id="notes"
           rows={3}
           {...register('notes')}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-tea-dark focus:ring-tea-dark sm:text-sm"
@@ -161,7 +179,7 @@ export const GrowthRecordForm = ({
       <div className="flex justify-end space-x-3 pt-4">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tea-dark"
           disabled={isSubmitting}
         >
@@ -177,4 +195,6 @@ export const GrowthRecordForm = ({
       </div>
     </form>
   );
-};
+});
+
+GrowthRecordForm.displayName = 'GrowthRecordForm';
